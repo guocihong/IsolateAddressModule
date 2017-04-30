@@ -1,0 +1,160 @@
+C51 COMPILER V9.54   TIMER_DRV                                                             04/28/2017 13:06:00 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE TIMER_DRV
+OBJECT MODULE PLACED IN .\Objects\timer_drv.obj
+COMPILER INVOKED BY: D:\Keil_v5\C51\BIN\C51.EXE driver\timer\timer_drv.c OMF2 OPTIMIZE(8,SPEED) BROWSE DEBUG PRINT(.\Lis
+                    -tings\timer_drv.lst) OBJECT(.\Objects\timer_drv.obj)
+
+line level    source
+
+   1          #include "driver/timer/timer_drv.h"
+   2          #include "driver/wdt/wdt_drv.h"
+   3          #include "driver/adc/adc_drv.h"
+   4          
+   5          /* UART2 */
+   6          extern xdata  Byte         recv2_state;                 // receive state
+   7          extern xdata  Byte         recv2_timer;                 // receive time-out, 用于字节间超时判定
+   8          
+   9          /* System */
+  10          extern data   Uint16       gl_ack_tick;                 //上位机485口应答延时计时 tick
+  11          extern data   Byte         watch_dog_tick;
+  12          
+  13          /* AD sample */
+  14          extern  data  Byte         ad_index;                    //正在采样的通道号，范围0-1
+  15          extern  data  sAD_Sample   ad_sample;                   //保存当前采样值
+  16          extern  data  Uint16       ad_alarm_tick[2];            //各通道报警计时tick
+  17          
+  18          void timer0_init(void)   // 5ms@22.1184MHz
+  19          {    
+  20   1              //watch_dog_tick = 0xFF;
+  21   1              
+  22   1          // 定时器0初始化
+  23   1              AUXR &= 0x7F;            // 设置为12T模式
+  24   1              TMOD &= 0xF0;            // 设置为工作模式1
+  25   1              TMOD |= 0x01;
+  26   1              TL0 = 0x00;                  // 设置定时初值
+  27   1              TH0 = 0xDC;                  // 设置定时初值
+  28   1              //TH0 = 0x28;                // 设置定时初值
+  29   1              TF0 = 0;                     // 清除TF0标志
+  30   1          ET0 = 1;             // 使能T0中断允许位
+  31   1          IPH |= (1 << 1);
+  32   1          PT0 = 0;             // 设置中断优先级为优先级2
+  33   1              TR0 = 1;                     // 定时器0开始计时
+  34   1              
+  35   1              // 启动AD转换
+  36   1              ADC_CONTR &= 0xF8;   //选中P10做为AD转换
+  37   1          _nop_();
+  38   1          _nop_();
+  39   1          _nop_();
+  40   1          _nop_();
+  41   1              ADC_CONTR |= ADC_START;
+  42   1      }
+  43          
+  44          void timer0_isr(void) interrupt TF0_VECTOR using 0
+  45          {             
+  46   1              Byte i;
+  47   1              
+  48   1          // 重装初值
+  49   1          TR0 = 0;
+  50   1              TL0 = 0x00;                                           // 设置定时初值
+  51   1              TH0 = 0xDC;                                           // 设置定时初值
+  52   1              //TH0 = 0x28;                                         // 设置定时初值
+  53   1              TR0 = 1;                                              // 定时器0开始计时
+  54   1              
+C51 COMPILER V9.54   TIMER_DRV                                                             04/28/2017 13:06:00 PAGE 2   
+
+  55   1              // AD转换完成,将ADC_FLAG转换完成标志清零
+  56   1          ADC_CONTR &= ~ADC_FLAG;
+  57   1      
+  58   1              // 读AD值
+  59   1              if (ad_sample.valid == FALSE) {
+  60   2                      // 原数据已经被处理, 可以写入新数据
+  61   2                      ad_sample.val   = ADC_RES;                // 读高8位
+  62   2                      ad_sample.val   = ad_sample.val << 2;
+  63   2                      ad_sample.val   += (ADC_RESL & 0x03);     // 得到10bit采样值
+  64   2                      ad_sample.index = ad_index;
+  65   2                      ad_sample.valid = TRUE;
+  66   2                                      
+  67   2                      // 启动下一通道采样
+  68   2                      if (ad_index == 1) {
+  69   3                              ad_index = 0;
+  70   3                      } else {
+  71   3                              ad_index++;
+  72   3                      }
+  73   2      
+  74   2                      // 选择模拟输入
+  75   2                      if (ad_index == 0) {//选中P10做为AD输入
+  76   3                              ADC_CONTR &= 0xF8;
+  77   3                      } else if (ad_index == 1) {//选中P11做为AD输入
+  78   3                              ADC_CONTR &= 0xF8;
+  79   3                              ADC_CONTR |= 0x01;
+  80   3                      }
+  81   2                      
+  82   2              _nop_();
+  83   2              _nop_();
+  84   2              _nop_();
+  85   2              _nop_();
+  86   2              _nop_();
+  87   2              _nop_();
+  88   2              _nop_();
+  89   2              _nop_();
+  90   2                      ADC_CONTR |= ADC_POWER_ENABLE | ADC_SPEED_540; // 启动转换
+  91   2              _nop_();
+  92   2              _nop_();
+  93   2              _nop_();
+  94   2              _nop_();
+  95   2              ADC_CONTR |=  ADC_START;
+  96   2              }
+  97   1              
+  98   1              if (gl_ack_tick > 0) {
+  99   2                      gl_ack_tick--;                            //应答延时计时
+ 100   2              }
+ 101   1              
+ 102   1              for (i = 0; i < 2; i++) {
+ 103   2                      if (ad_alarm_tick[i] > 0) {
+ 104   3                              ad_alarm_tick[i]--;
+ 105   3                      }
+ 106   2              }
+ 107   1                      
+ 108   1              /*
+ 109   1              if (watch_dog_tick > 0) {
+ 110   1                      watch_dog_tick--;
+ 111   1                      
+ 112   1                      //喂狗
+ 113   1              Wdt_refresh();
+ 114   1              }
+ 115   1              */
+ 116   1              
+C51 COMPILER V9.54   TIMER_DRV                                                             04/28/2017 13:06:00 PAGE 3   
+
+ 117   1              // UART2字节之间接收超时
+ 118   1              if (recv2_state != FSA_INIT) { 
+ 119   2                      //非初始状态，需要检测是否超时
+ 120   2                      if (recv2_timer > 0) {
+ 121   3                              recv2_timer--;
+ 122   3                      }
+ 123   2                      
+ 124   2                      if (recv2_timer == 0) {
+ 125   3                              recv2_state = FSA_INIT;               //接收超时, 恢复至初始状态                        
+ 126   3                      }
+ 127   2              }
+ 128   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    253    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
