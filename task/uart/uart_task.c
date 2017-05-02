@@ -24,6 +24,7 @@ extern data   Byte     watch_dog_tick;
 
 /* AD sample */
 extern data   Byte     ad_alarm_exts;                        //报警标志：00-无报警,01-1#防区报警，02-2#防区报警，03-1#防区和2#防区同时报警
+extern data   Byte     alarm_host_read[2];                   //报警主机是否读取了本设备的报警状态
 
 
 void uart_task_init(void)
@@ -89,6 +90,11 @@ void uart_task(void)
 								uart2_send_queue[i].tdata[5] = (ad_alarm_exts & 0x03);
 								uart2_send_queue[i].len = 7;
 							}
+							
+							//报警时间最长只会保持10s，如果10s之内报警主机没有来读，报警状态会自动恢复
+							//如果10s之内，报警主机读取了本设备的报警状态，本设备的报警状态会自动恢复，不会继续报警
+							alarm_host_read[0] = 1;
+							alarm_host_read[1] = 1;
 						}
 					}
 					

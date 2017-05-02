@@ -10,6 +10,7 @@ extern  data  Uint16       ad_chn_sample[2];            //最新一轮采样值（已均衡
 extern  data  Byte         ad_chn_over[2];              //各通道连续采样点(均衡后)的阀值判定： 0 - 范围内； 1 - 超阀值
 extern  data  Byte         ad_alarm_exts;               //报警标志：00-无报警,01-1#防区报警，02-2#防区报警，03-1#防区和2#防区同时报警
 extern  data  Uint16       ad_alarm_tick[2];            //各通道报警计时tick
+extern  data  Byte         alarm_host_read[2];          //报警主机是否读取了本设备的报警状态
 
 void adc_task_init(void)
 {
@@ -20,7 +21,9 @@ void adc_task_init(void)
 	ad_sample.valid = 0;                     //空闲，可以写入新值
 	
 	ad_alarm_exts = 0;
-	
+	alarm_host_read[0] = 0;
+	alarm_host_read[1] = 0;
+
 	for (i = 0; i < 2; i++) {
 		ad_samp_equ[i].sum       = 0;        //均衡去噪声求和
 		ad_samp_equ[i].point     = 0;
@@ -88,9 +91,13 @@ void adc_task(void)
 				//报警计时tick
 				ad_alarm_tick[index] = ALARM_TEMPO;                     
 			} else if ((ad_chn_over[index] & 0x0F) == 0x00) {//无报警
-				if (ad_alarm_tick[index] == 0) {//检查报警时间是否已到
-					//报警已经到最大报警时间, 停止报警
+				//检查报警时间是否已到,或者报警主机是否读取了本设备的报警状态
+				if ((ad_alarm_tick[index] == 0) || (alarm_host_read[index] == 1)) {
+					//报警已经到最大报警时间或者报警主机是读取了本设备的报警状态, 停止报警
 					ad_alarm_exts &= ~(1 << index);
+					
+					//复位
+					alarm_host_read[index] = 0;
 				}
 			}
 		}

@@ -9,7 +9,7 @@
 /* Scheduler Tick */
 #define SCHEDULER_TICK     5                                     // unit is ms
 #define REPLY_DLY          (100/SCHEDULER_TICK)                  //收到PC命令后的应答延时
-#define ALARM_TEMPO        (6000/SCHEDULER_TICK)                 //报警信号持续时间
+#define ALARM_TEMPO        (10000/SCHEDULER_TICK)                 //报警信号持续时间
 
 /* 系统命令定义 */
 #define CMD_ADDR_DEF     0x30    //缺省主机地址

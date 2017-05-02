@@ -1,4 +1,4 @@
-C51 COMPILER V9.54   UART_TASK                                                             04/30/2017 13:50:23 PAGE 1   
+C51 COMPILER V9.54   UART_TASK                                                             05/02/2017 13:31:24 PAGE 1   
 
 
 C51 COMPILER V9.54, COMPILATION OF MODULE UART_TASK
@@ -37,225 +37,231 @@ line level    source
   25          /* AD sample */
   26          extern data   Byte     ad_alarm_exts;                        //±®æØ±Í÷æ£∫00-Œﬁ±®æØ,01-1#∑¿«¯±®æØ£¨02-2#∑¿«
              -¯±®æØ£¨03-1#∑¿«¯∫Õ2#∑¿«¯Õ¨ ±±®æØ
-  27          
+  27          extern data   Byte     alarm_host_read[2];                   //±®æØ÷˜ª˙ «∑Ò∂¡»°¡À±æ…Ë±∏µƒ±®æØ◊¥Ã¨
   28          
-  29          void uart_task_init(void)
-  30          {
-  31   1              Byte i;
-  32   1      
-  33   1              //uart2œ‡πÿ±‰¡ø≥ı ºªØ
-  34   1              recv2_state    = FSA_INIT;
-  35   1              recv2_timer    = 0;
-  36   1              recv2_ctr      = 0;
-  37   1              recv2_chksum   = 0;
-  38   1      
-  39   1              trans2_size    = 0;
-  40   1              trans2_ctr     = 0;
-  41   1      
-  42   1              for (i = 0; i < UART_QUEUE_NUM; i++) {
-  43   2                      uart2_send_queue[i].flag = 0; //æ˘ø’œ–
-  44   2                      uart2_recv_queue[i].flag = 0; //æ˘ø’œ–
-  45   2              }
-  46   1              uart2_q_index = 0xFF;             //Œﬁ∂”¡–œÓΩ¯»Î∑¢ÀÕ¡˜≥Ã
-  47   1      
-  48   1              //UART”≤º˛≥ı ºªØ
-  49   1              uart_init();                      //“—æ≠◊º±∏∫√¥Æø⁄ ’∑¢£¨÷ª «ªπŒ¥ πƒ‹»´æ÷÷–∂œ
-  50   1      }
-  51          
-C51 COMPILER V9.54   UART_TASK                                                             04/30/2017 13:50:23 PAGE 2   
+  29          
+  30          void uart_task_init(void)
+  31          {
+  32   1              Byte i;
+  33   1      
+  34   1              //uart2œ‡πÿ±‰¡ø≥ı ºªØ
+  35   1              recv2_state    = FSA_INIT;
+  36   1              recv2_timer    = 0;
+  37   1              recv2_ctr      = 0;
+  38   1              recv2_chksum   = 0;
+  39   1      
+  40   1              trans2_size    = 0;
+  41   1              trans2_ctr     = 0;
+  42   1      
+  43   1              for (i = 0; i < UART_QUEUE_NUM; i++) {
+  44   2                      uart2_send_queue[i].flag = 0; //æ˘ø’œ–
+  45   2                      uart2_recv_queue[i].flag = 0; //æ˘ø’œ–
+  46   2              }
+  47   1              uart2_q_index = 0xFF;             //Œﬁ∂”¡–œÓΩ¯»Î∑¢ÀÕ¡˜≥Ã
+  48   1      
+  49   1              //UART”≤º˛≥ı ºªØ
+  50   1              uart_init();                      //“—æ≠◊º±∏∫√¥Æø⁄ ’∑¢£¨÷ª «ªπŒ¥ πƒ‹»´æ÷÷–∂œ
+  51   1      }
+C51 COMPILER V9.54   UART_TASK                                                             05/02/2017 13:31:24 PAGE 2   
 
-  52          void uart_task(void)
-  53          {
-  54   1              Byte i,j;
-  55   1              Byte *ptr;
-  56   1              
-  57   1              //1. UART2 ∂”¡–¥¶¿Ì
-  58   1              //’“ «∑Ò”–µ»¥˝¥¶¿ÌµƒœÓ
-  59   1              for (j = 0; j < UART_QUEUE_NUM; j++) {
-  60   2                      if (uart2_recv_queue[j].flag == 1) {//”–µ»¥˝¥¶¿ÌµƒœÓ
-  61   3                              ptr = uart2_recv_queue[j].tdata;
-  62   3                              
-  63   3                              // «∑Ò–Ë“™÷¥––±æ√¸¡Ó
-  64   3                              if ((ptr[0] == CMD_ADDR_BC) || (ptr[0] == gl_comm_addr)) {
-  65   4                                      //π„≤•µÿ÷∑ªÚ÷∏∂®±æ…Ë±∏, –Ë“™÷¥––
-  66   4                                      switch (ptr[3])
-  67   4                                      {
-  68   5                                      case CMD_DADDR_qSTAT://—ØŒ ∑¿«¯◊¥Ã¨ - ±®∏Ê∏¯…œŒªª˙
-  69   5                                              //‘⁄UART2∑¢ÀÕ∂”¡–÷–’“ø’œ–Buffer
-  70   5                                              i = uart2_get_send_buffer();
-  71   5                                              if (i < UART_QUEUE_NUM) {
-  72   6                                                      //’“µΩ¡Àø’œ–buffer, ◊º±∏”¶¥                                    
-  73   6                                                      uart2_send_queue[i].tdata[0] = FRAME_STX;              //÷°Õ∑
-  74   6                                                      uart2_send_queue[i].tdata[1] = ptr[1];             //ƒøµƒµÿ÷∑
-  75   6                                                      uart2_send_queue[i].tdata[2] = gl_comm_addr;       //‘¥µÿ÷∑
-  76   6                                                      if (gl_comm_addr == CMD_ADDR_UNSOLV) {             //±æ…Ë±∏Œﬁ”––ßµÿ÷∑
-  77   7                                                              //÷ªªÿ≤Œ ˝”¶¥
-  78   7                                                              uart2_send_queue[i].tdata[3] = 1;
-  79   7                                                              uart2_send_queue[i].tdata[4] = CMD_DADDR_aPARA;
-  80   7                                                              uart2_send_queue[i].len = 6;
-  81   7                                                      } else { //”–”––ßµÿ÷∑,ªÿ∑¿«¯◊¥Ã¨
-  82   7                                                              if ((ad_alarm_exts & 0x03) == 0x00) { //2∏ˆ∑¿«¯æ˘Œﬁ±®æØ
-  83   8                                                                      uart2_send_queue[i].tdata[3] = 1;
-  84   8                                                                      uart2_send_queue[i].tdata[4] = CMD_ACK_OK;
-  85   8                                                                      uart2_send_queue[i].len = 6;
-  86   8                                                              } else { //”–±®æØ
-  87   8                                                                      uart2_send_queue[i].tdata[3] = 2;
-  88   8                                                                      uart2_send_queue[i].tdata[4] = CMD_DADDR_aSTAT;
-  89   8                                                                      uart2_send_queue[i].tdata[5] = (ad_alarm_exts & 0x03);
-  90   8                                                                      uart2_send_queue[i].len = 7;
-  91   8                                                              }
-  92   7                                                      }
-  93   6                                              }
-  94   5                                              
-  95   5                                              break;
-  96   5      
-  97   5                                      case CMD_DADDR_qPARA://—ØŒ µÿ÷∑- ±®∏Ê∏¯…œŒªª˙
-  98   5                                              //‘⁄UART2∑¢ÀÕ∂”¡–÷–’“ø’œ–Buffer
-  99   5                                              i = uart2_get_send_buffer();
- 100   5                                              if (i < UART_QUEUE_NUM) {
- 101   6                                                      //’“µΩ¡Àø’œ–buffer, ◊º±∏”¶¥                                    
- 102   6                                                      uart2_send_queue[i].tdata[0] = FRAME_STX;                      //÷°Õ∑
- 103   6                                                      uart2_send_queue[i].tdata[1] = ptr[1];                     //ƒøµƒµÿ÷∑
- 104   6                                                      uart2_send_queue[i].tdata[2] = gl_comm_addr;               //‘¥µÿ÷∑
- 105   6                                                      uart2_send_queue[i].tdata[3] = 1;                          //√¸¡Ó≥§∂»
- 106   6                                                      uart2_send_queue[i].tdata[4] = CMD_DADDR_aPARA;            //√¸¡ÓID
- 107   6                                                      uart2_send_queue[i].len = 6;
- 108   6                                              }
- 109   5                                              
- 110   5                                              break;
- 111   5                                              
- 112   5                                      case 0xE3://…Ë÷√—” ± ±º‰
- 113   5                          //1. –¥»Îflash
-C51 COMPILER V9.54   UART_TASK                                                             04/30/2017 13:50:23 PAGE 3   
+  52          
+  53          void uart_task(void)
+  54          {
+  55   1              Byte i,j;
+  56   1              Byte *ptr;
+  57   1              
+  58   1              //1. UART2 ∂”¡–¥¶¿Ì
+  59   1              //’“ «∑Ò”–µ»¥˝¥¶¿ÌµƒœÓ
+  60   1              for (j = 0; j < UART_QUEUE_NUM; j++) {
+  61   2                      if (uart2_recv_queue[j].flag == 1) {//”–µ»¥˝¥¶¿ÌµƒœÓ
+  62   3                              ptr = uart2_recv_queue[j].tdata;
+  63   3                              
+  64   3                              // «∑Ò–Ë“™÷¥––±æ√¸¡Ó
+  65   3                              if ((ptr[0] == CMD_ADDR_BC) || (ptr[0] == gl_comm_addr)) {
+  66   4                                      //π„≤•µÿ÷∑ªÚ÷∏∂®±æ…Ë±∏, –Ë“™÷¥––
+  67   4                                      switch (ptr[3])
+  68   4                                      {
+  69   5                                      case CMD_DADDR_qSTAT://—ØŒ ∑¿«¯◊¥Ã¨ - ±®∏Ê∏¯…œŒªª˙
+  70   5                                              //‘⁄UART2∑¢ÀÕ∂”¡–÷–’“ø’œ–Buffer
+  71   5                                              i = uart2_get_send_buffer();
+  72   5                                              if (i < UART_QUEUE_NUM) {
+  73   6                                                      //’“µΩ¡Àø’œ–buffer, ◊º±∏”¶¥                                    
+  74   6                                                      uart2_send_queue[i].tdata[0] = FRAME_STX;              //÷°Õ∑
+  75   6                                                      uart2_send_queue[i].tdata[1] = ptr[1];             //ƒøµƒµÿ÷∑
+  76   6                                                      uart2_send_queue[i].tdata[2] = gl_comm_addr;       //‘¥µÿ÷∑
+  77   6                                                      if (gl_comm_addr == CMD_ADDR_UNSOLV) {             //±æ…Ë±∏Œﬁ”––ßµÿ÷∑
+  78   7                                                              //÷ªªÿ≤Œ ˝”¶¥
+  79   7                                                              uart2_send_queue[i].tdata[3] = 1;
+  80   7                                                              uart2_send_queue[i].tdata[4] = CMD_DADDR_aPARA;
+  81   7                                                              uart2_send_queue[i].len = 6;
+  82   7                                                      } else { //”–”––ßµÿ÷∑,ªÿ∑¿«¯◊¥Ã¨
+  83   7                                                              if ((ad_alarm_exts & 0x03) == 0x00) { //2∏ˆ∑¿«¯æ˘Œﬁ±®æØ
+  84   8                                                                      uart2_send_queue[i].tdata[3] = 1;
+  85   8                                                                      uart2_send_queue[i].tdata[4] = CMD_ACK_OK;
+  86   8                                                                      uart2_send_queue[i].len = 6;
+  87   8                                                              } else { //”–±®æØ
+  88   8                                                                      uart2_send_queue[i].tdata[3] = 2;
+  89   8                                                                      uart2_send_queue[i].tdata[4] = CMD_DADDR_aSTAT;
+  90   8                                                                      uart2_send_queue[i].tdata[5] = (ad_alarm_exts & 0x03);
+  91   8                                                                      uart2_send_queue[i].len = 7;
+  92   8                                                              }
+  93   7                                                              
+  94   7                                                              //±®æØ ±º‰◊Ó≥§÷ªª·±£≥÷10s£¨»Áπ˚10s÷Æƒ⁄±®æØ÷˜ª˙√ª”–¿¥∂¡£¨±®æØ◊¥Ã¨ª·◊‘∂Øª÷∏¥
+  95   7                                                              //»Áπ˚10s÷Æƒ⁄£¨±®æØ÷˜ª˙∂¡»°¡À±æ…Ë±∏µƒ±®æØ◊¥Ã¨£¨±æ…Ë±∏µƒ±®æØ◊¥Ã¨ª·◊‘∂Øª÷∏¥£¨≤ªª·ºÃ–¯±®æØ
+  96   7                                                              alarm_host_read[0] = 1;
+  97   7                                                              alarm_host_read[1] = 1;
+  98   7                                                      }
+  99   6                                              }
+ 100   5                                              
+ 101   5                                              break;
+ 102   5      
+ 103   5                                      case CMD_DADDR_qPARA://—ØŒ µÿ÷∑- ±®∏Ê∏¯…œŒªª˙
+ 104   5                                              //‘⁄UART2∑¢ÀÕ∂”¡–÷–’“ø’œ–Buffer
+ 105   5                                              i = uart2_get_send_buffer();
+ 106   5                                              if (i < UART_QUEUE_NUM) {
+ 107   6                                                      //’“µΩ¡Àø’œ–buffer, ◊º±∏”¶¥                                    
+ 108   6                                                      uart2_send_queue[i].tdata[0] = FRAME_STX;                      //÷°Õ∑
+ 109   6                                                      uart2_send_queue[i].tdata[1] = ptr[1];                     //ƒøµƒµÿ÷∑
+ 110   6                                                      uart2_send_queue[i].tdata[2] = gl_comm_addr;               //‘¥µÿ÷∑
+ 111   6                                                      uart2_send_queue[i].tdata[3] = 1;                          //√¸¡Ó≥§∂»
+ 112   6                                                      uart2_send_queue[i].tdata[4] = CMD_DADDR_aPARA;            //√¸¡ÓID
+ 113   6                                                      uart2_send_queue[i].len = 6;
+C51 COMPILER V9.54   UART_TASK                                                             05/02/2017 13:31:24 PAGE 3   
 
- 114   5                          flash_enable();                              
- 115   5                          flash_erase(EEPROM_SECTOR1);                                        
- 116   5                          flash_write(ptr[4], EEPROM_SECTOR1 + 1);  
- 117   5                          flash_write(0x5a, EEPROM_SECTOR1);                                                    
+ 114   6                                              }
+ 115   5                                              
+ 116   5                                              break;
+ 117   5                                              
+ 118   5                                      case 0xE3://…Ë÷√—” ± ±º‰
+ 119   5                          //1. –¥»Îflash
+ 120   5                          flash_enable();                              
+ 121   5                          flash_erase(EEPROM_SECTOR1);                                        
+ 122   5                          flash_write(ptr[4], EEPROM_SECTOR1 + 1);  
+ 123   5                          flash_write(0x5a, EEPROM_SECTOR1);                                                    
              -          
- 118   5                          flash_disable();
- 119   5      
- 120   5                          //2. ∏¸–¬±‰¡ø
- 121   5                          gl_reply_tick = ptr[4];
- 122   5                                      
- 123   5                          break;
- 124   5      
- 125   5                      case 0xE4://∂¡»°—” ± ±º‰
- 126   5                          //‘⁄UART3∂”¡–÷–’“ø’œ–Buffer
- 127   5                          i = uart2_get_send_buffer();
- 128   5                          if (i < UART_QUEUE_NUM) { //’“µΩ¡Àø’œ–buffer, ◊º±∏”¶¥                       
- 129   6                              uart2_send_queue[i].tdata[0] = FRAME_STX;                          //÷°Õ∑
- 130   6                              uart2_send_queue[i].tdata[1] = ptr[1];                         //ƒøµƒµÿ÷∑
- 131   6                              uart2_send_queue[i].tdata[2] = gl_comm_addr;                   //‘¥µÿ÷∑                                                                                                         
+ 124   5                          flash_disable();
+ 125   5      
+ 126   5                          //2. ∏¸–¬±‰¡ø
+ 127   5                          gl_reply_tick = ptr[4];
+ 128   5                                      
+ 129   5                          break;
+ 130   5      
+ 131   5                      case 0xE4://∂¡»°—” ± ±º‰
+ 132   5                          //‘⁄UART3∂”¡–÷–’“ø’œ–Buffer
+ 133   5                          i = uart2_get_send_buffer();
+ 134   5                          if (i < UART_QUEUE_NUM) { //’“µΩ¡Àø’œ–buffer, ◊º±∏”¶¥                       
+ 135   6                              uart2_send_queue[i].tdata[0] = FRAME_STX;                          //÷°Õ∑
+ 136   6                              uart2_send_queue[i].tdata[1] = ptr[1];                         //ƒøµƒµÿ÷∑
+ 137   6                              uart2_send_queue[i].tdata[2] = gl_comm_addr;                   //‘¥µÿ÷∑                                                                                                         
              -                 
- 132   6                              uart2_send_queue[i].tdata[3] = 2;
- 133   6                              uart2_send_queue[i].tdata[4] = 0xF4;
- 134   6                              uart2_send_queue[i].tdata[5] = gl_reply_tick;
- 135   6                              uart2_send_queue[i].len = 7;                                                                                                            
- 136   6                          }
- 137   5                          
- 138   5                          break;      
- 139   5                                      }
- 140   4                                      
- 141   4                                      //…Ë÷√”¶¥—” ±
- 142   4                      Disable_interrupt();
- 143   4                      //gl_ack_tick = gl_comm_addr - 15;
- 144   4                                      gl_ack_tick = (Uint16)(REPLY_DLY + (Uint16)((gl_comm_addr - 16) * gl_reply_tick) / SCHEDULER_TICK);
- 145   4      
- 146   4                                      // ÷ÿ◊∞≥ı÷µ
- 147   4                                      TR0 = 0;
- 148   4                                      TL0 = 0x00;                                           // …Ë÷√∂® ±≥ı÷µ
- 149   4                                      TH0 = 0xDC;                                           // …Ë÷√∂® ±≥ı÷µ
- 150   4                                      //TH0 = 0x28;                                     // …Ë÷√∂® ±≥ı÷µ
- 151   4                                      TR0 = 1;                                              // ∂® ±∆˜0ø™ ºº∆ ±
- 152   4                                      
- 153   4                      Enable_interrupt();
- 154   4                              }
- 155   3      
- 156   3                              //¥¶¿ÌÕÍ≥…, Õ∑≈∏√∂”¡–œÓ
- 157   3                              uart2_recv_queue[j].flag = 0;
- 158   3                              break;
- 159   3                      }
- 160   2              }
- 161   1      
- 162   1              //2. UART2 ∂”¡–∑¢ÀÕ
- 163   1              if ((uart2_q_index == 0xFF) && (recv2_state == FSA_INIT)) {
- 164   2                      //UART2ŒﬁΩ¯»Î∑¢ÀÕ¡˜≥Ãµƒ∂”¡–œÓ, ’“ «∑Ò”–µ»¥˝∑¢ÀÕµƒœÓ
- 165   2                      for (i = 0; i < UART_QUEUE_NUM; i++) {
- 166   3                              if ((uart2_send_queue[i].flag == 1) && (gl_ack_tick == 0)) {
- 167   4                                      //÷ÿ–¬∏≥÷µ
- 168   4                                      //watch_dog_tick = 0xFF;
- 169   4                                      
- 170   4                                      //”–µ»¥˝∑¢ÀÕµƒœÓ£¨∞≤≈≈¥ÀœÓ∑¢ÀÕ
- 171   4                                      uart2_send_queue[i].flag = 2;
- 172   4                                      uart2_q_index = i;
- 173   4                                      memcpy(trans2_buf, uart2_send_queue[i].tdata, uart2_send_queue[i].len - 1);
-C51 COMPILER V9.54   UART_TASK                                                             04/30/2017 13:50:23 PAGE 4   
+ 138   6                              uart2_send_queue[i].tdata[3] = 2;
+ 139   6                              uart2_send_queue[i].tdata[4] = 0xF4;
+ 140   6                              uart2_send_queue[i].tdata[5] = gl_reply_tick;
+ 141   6                              uart2_send_queue[i].len = 7;                                                                                                            
+ 142   6                          }
+ 143   5                          
+ 144   5                          break;      
+ 145   5                                      }
+ 146   4                                      
+ 147   4                                      //…Ë÷√”¶¥—” ±
+ 148   4                      Disable_interrupt();
+ 149   4                      //gl_ack_tick = gl_comm_addr - 15;
+ 150   4                                      gl_ack_tick = (Uint16)(REPLY_DLY + (Uint16)((gl_comm_addr - 16) * gl_reply_tick) / SCHEDULER_TICK);
+ 151   4      
+ 152   4                                      // ÷ÿ◊∞≥ı÷µ
+ 153   4                                      TR0 = 0;
+ 154   4                                      TL0 = 0x00;                                           // …Ë÷√∂® ±≥ı÷µ
+ 155   4                                      TH0 = 0xDC;                                           // …Ë÷√∂® ±≥ı÷µ
+ 156   4                                      //TH0 = 0x28;                                     // …Ë÷√∂® ±≥ı÷µ
+ 157   4                                      TR0 = 1;                                              // ∂® ±∆˜0ø™ ºº∆ ±
+ 158   4                                      
+ 159   4                      Enable_interrupt();
+ 160   4                              }
+ 161   3      
+ 162   3                              //¥¶¿ÌÕÍ≥…, Õ∑≈∏√∂”¡–œÓ
+ 163   3                              uart2_recv_queue[j].flag = 0;
+ 164   3                              break;
+ 165   3                      }
+ 166   2              }
+ 167   1      
+ 168   1              //2. UART2 ∂”¡–∑¢ÀÕ
+ 169   1              if ((uart2_q_index == 0xFF) && (recv2_state == FSA_INIT)) {
+ 170   2                      //UART2ŒﬁΩ¯»Î∑¢ÀÕ¡˜≥Ãµƒ∂”¡–œÓ, ’“ «∑Ò”–µ»¥˝∑¢ÀÕµƒœÓ
+ 171   2                      for (i = 0; i < UART_QUEUE_NUM; i++) {
+ 172   3                              if ((uart2_send_queue[i].flag == 1) && (gl_ack_tick == 0)) {
+ 173   4                                      //÷ÿ–¬∏≥÷µ
+C51 COMPILER V9.54   UART_TASK                                                             05/02/2017 13:31:24 PAGE 4   
 
- 174   4                                      trans2_size = uart2_send_queue[i].len;
- 175   4                                      uart2_start_trans();
- 176   4                                      break;
- 177   4                              }
- 178   3                      }
- 179   2              }
- 180   1      }
- 181          
- 182          /***************************************************************************
- 183          * NAME: uart2_get_send_buffer
- 184          *----------------------------------------------------------------------------
- 185          * PARAMS:
- 186          * return: Byte
- 187          *         »Ù∑µªÿ÷µ >= UART_QUEUE_NUM, ‘Ú±Ì æ√ª”–…Í«ÎµΩø’œ–buffer
- 188          *----------------------------------------------------------------------------
- 189          * PURPOSE: ‘⁄¥Æø⁄2∂”¡–÷–—∞’“ø’œ–∂”¡–œÓ£¨»Ù’“µΩ£¨∑µªÿ∂”¡–œÓ–Ú∫≈(0 ~ (UART_QUEUE_NUM-1))
- 190          *****************************************************************************/
- 191          Byte uart2_get_send_buffer(void)
- 192          {
- 193   1              Byte i, flag;
- 194   1      
- 195   1              for (i = 0; i < UART_QUEUE_NUM; i++) {
- 196   2                      Disable_interrupt();
- 197   2                      flag = uart2_send_queue[i].flag;
- 198   2                      Enable_interrupt();
- 199   2                      if (flag == 0) {  //“—’“µΩø’œ–Buffer
- 200   3                              uart2_send_queue[i].flag = 1;
- 201   3                              break;
- 202   3                      }
- 203   2              }
- 204   1              return i;
- 205   1      }
- 206          
- 207          /***************************************************************************
- 208          * NAME: uart2_get_recv_buffer
- 209          *----------------------------------------------------------------------------
- 210          * PARAMS:
- 211          * return: Byte
- 212          *         »Ù∑µªÿ÷µ >= UART_QUEUE_NUM, ‘Ú±Ì æ√ª”–…Í«ÎµΩø’œ–buffer
- 213          *----------------------------------------------------------------------------
- 214          * PURPOSE: ‘⁄¥Æø⁄2∂”¡–÷–—∞’“ø’œ–∂”¡–œÓ£¨»Ù’“µΩ£¨∑µªÿ∂”¡–œÓ–Ú∫≈(0 ~ (UART_QUEUE_NUM-1))
- 215          *****************************************************************************/
- 216          Byte uart2_get_recv_buffer(void)
- 217          {
- 218   1              Byte i, flag;
- 219   1      
- 220   1              for (i = 0; i < UART_QUEUE_NUM; i++) {
- 221   2                      Disable_interrupt();
- 222   2                      flag = uart2_recv_queue[i].flag;
- 223   2                      Enable_interrupt();
- 224   2                      if (flag == 0) {  //“—’“µΩø’œ–Buffer
- 225   3                              uart2_recv_queue[i].flag = 1;
- 226   3                              break;
- 227   3                      }
- 228   2              }
- 229   1              return i;
- 230   1      }
+ 174   4                                      //watch_dog_tick = 0xFF;
+ 175   4                                      
+ 176   4                                      //”–µ»¥˝∑¢ÀÕµƒœÓ£¨∞≤≈≈¥ÀœÓ∑¢ÀÕ
+ 177   4                                      uart2_send_queue[i].flag = 2;
+ 178   4                                      uart2_q_index = i;
+ 179   4                                      memcpy(trans2_buf, uart2_send_queue[i].tdata, uart2_send_queue[i].len - 1);
+ 180   4                                      trans2_size = uart2_send_queue[i].len;
+ 181   4                                      uart2_start_trans();
+ 182   4                                      break;
+ 183   4                              }
+ 184   3                      }
+ 185   2              }
+ 186   1      }
+ 187          
+ 188          /***************************************************************************
+ 189          * NAME: uart2_get_send_buffer
+ 190          *----------------------------------------------------------------------------
+ 191          * PARAMS:
+ 192          * return: Byte
+ 193          *         »Ù∑µªÿ÷µ >= UART_QUEUE_NUM, ‘Ú±Ì æ√ª”–…Í«ÎµΩø’œ–buffer
+ 194          *----------------------------------------------------------------------------
+ 195          * PURPOSE: ‘⁄¥Æø⁄2∂”¡–÷–—∞’“ø’œ–∂”¡–œÓ£¨»Ù’“µΩ£¨∑µªÿ∂”¡–œÓ–Ú∫≈(0 ~ (UART_QUEUE_NUM-1))
+ 196          *****************************************************************************/
+ 197          Byte uart2_get_send_buffer(void)
+ 198          {
+ 199   1              Byte i, flag;
+ 200   1      
+ 201   1              for (i = 0; i < UART_QUEUE_NUM; i++) {
+ 202   2                      Disable_interrupt();
+ 203   2                      flag = uart2_send_queue[i].flag;
+ 204   2                      Enable_interrupt();
+ 205   2                      if (flag == 0) {  //“—’“µΩø’œ–Buffer
+ 206   3                              uart2_send_queue[i].flag = 1;
+ 207   3                              break;
+ 208   3                      }
+ 209   2              }
+ 210   1              return i;
+ 211   1      }
+ 212          
+ 213          /***************************************************************************
+ 214          * NAME: uart2_get_recv_buffer
+ 215          *----------------------------------------------------------------------------
+ 216          * PARAMS:
+ 217          * return: Byte
+ 218          *         »Ù∑µªÿ÷µ >= UART_QUEUE_NUM, ‘Ú±Ì æ√ª”–…Í«ÎµΩø’œ–buffer
+ 219          *----------------------------------------------------------------------------
+ 220          * PURPOSE: ‘⁄¥Æø⁄2∂”¡–÷–—∞’“ø’œ–∂”¡–œÓ£¨»Ù’“µΩ£¨∑µªÿ∂”¡–œÓ–Ú∫≈(0 ~ (UART_QUEUE_NUM-1))
+ 221          *****************************************************************************/
+ 222          Byte uart2_get_recv_buffer(void)
+ 223          {
+ 224   1              Byte i, flag;
+ 225   1      
+ 226   1              for (i = 0; i < UART_QUEUE_NUM; i++) {
+ 227   2                      Disable_interrupt();
+ 228   2                      flag = uart2_recv_queue[i].flag;
+ 229   2                      Enable_interrupt();
+ 230   2                      if (flag == 0) {  //“—’“µΩø’œ–Buffer
+ 231   3                              uart2_recv_queue[i].flag = 1;
+ 232   3                              break;
+ 233   3                      }
+ 234   2              }
+ 235   1              return i;
+C51 COMPILER V9.54   UART_TASK                                                             05/02/2017 13:31:24 PAGE 5   
+
+ 236   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =   1062    ----
+   CODE SIZE        =   1107    ----
    CONSTANT SIZE    =   ----    ----
-C51 COMPILER V9.54   UART_TASK                                                             04/30/2017 13:50:23 PAGE 5   
-
    XDATA SIZE       =   ----    ----
    PDATA SIZE       =   ----    ----
    DATA SIZE        =   ----       5

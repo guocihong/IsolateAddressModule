@@ -1,4 +1,4 @@
-C51 COMPILER V9.54   VARIABLE                                                              04/30/2017 13:50:23 PAGE 1   
+C51 COMPILER V9.54   VARIABLE                                                              05/02/2017 13:31:24 PAGE 1   
 
 
 C51 COMPILER V9.54, COMPILATION OF MODULE VARIABLE
@@ -47,7 +47,8 @@ line level    source
   33          data   Byte         ad_alarm_exts;                        //报警标志：00-无报警, 01-1#防区报警
              -, 02-2#防区报警, 03-1#和2#防区同时报警                   
   34          data   Uint16       ad_alarm_tick[2];                     //各通道报警计时tick
-  35          
+  35          data   Byte         alarm_host_read[2];                   //报警主机是否读取了本设备的报警�
+             -��态
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
@@ -55,15 +56,15 @@ MODULE INFORMATION:   STATIC OVERLAYABLE
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =    836    ----
    PDATA SIZE       =   ----    ----
-   DATA SIZE        =     28    ----
+   DATA SIZE        =     30    ----
    IDATA SIZE       =   ----    ----
    BIT SIZE         =   ----    ----
    EDATA SIZE       =   ----    ----
    HDATA SIZE       =   ----    ----
    XDATA CONST SIZE =   ----    ----
-   FAR CONST SIZE   =   ----    ----
-C51 COMPILER V9.54   VARIABLE                                                              04/30/2017 13:50:23 PAGE 2   
+C51 COMPILER V9.54   VARIABLE                                                              05/02/2017 13:31:24 PAGE 2   
 
+   FAR CONST SIZE   =   ----    ----
 END OF MODULE INFORMATION.
 
 
