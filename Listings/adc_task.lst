@@ -1,4 +1,4 @@
-C51 COMPILER V9.54   ADC_TASK                                                              05/02/2017 13:31:24 PAGE 1   
+C51 COMPILER V9.54   ADC_TASK                                                              05/15/2017 10:35:31 PAGE 1   
 
 
 C51 COMPILER V9.54, COMPILATION OF MODULE ADC_TASK
@@ -62,7 +62,7 @@ line level    source
   50   2      
   51   2                      // 1. 保存到均衡去噪声求和中
   52   2                      ad_samp_equ[index].sum += val_temp;
-C51 COMPILER V9.54   ADC_TASK                                                              05/02/2017 13:31:24 PAGE 2   
+C51 COMPILER V9.54   ADC_TASK                                                              05/15/2017 10:35:31 PAGE 2   
 
   53   2                      ad_samp_equ[index].point++;
   54   2      
@@ -126,7 +126,7 @@ MODULE INFORMATION:   STATIC OVERLAYABLE
    CODE SIZE        =    323    ----
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =   ----    ----
-C51 COMPILER V9.54   ADC_TASK                                                              05/02/2017 13:31:24 PAGE 3   
+C51 COMPILER V9.54   ADC_TASK                                                              05/15/2017 10:35:31 PAGE 3   
 
    PDATA SIZE       =   ----    ----
    DATA SIZE        =   ----    ----

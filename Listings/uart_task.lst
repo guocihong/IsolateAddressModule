@@ -1,4 +1,4 @@
-C51 COMPILER V9.54   UART_TASK                                                             05/02/2017 13:31:24 PAGE 1   
+C51 COMPILER V9.54   UART_TASK                                                             05/15/2017 10:35:31 PAGE 1   
 
 
 C51 COMPILER V9.54, COMPILATION OF MODULE UART_TASK
@@ -62,7 +62,7 @@ line level    source
   49   1              //UART硬件初始化
   50   1              uart_init();                      //已经准备好串口收发，只是还未使能全局中断
   51   1      }
-C51 COMPILER V9.54   UART_TASK                                                             05/02/2017 13:31:24 PAGE 2   
+C51 COMPILER V9.54   UART_TASK                                                             05/15/2017 10:35:31 PAGE 2   
 
   52          
   53          void uart_task(void)
@@ -126,7 +126,7 @@ line level    source
  111   6                                                      uart2_send_queue[i].tdata[3] = 1;                          //命令长度
  112   6                                                      uart2_send_queue[i].tdata[4] = CMD_DADDR_aPARA;            //命令ID
  113   6                                                      uart2_send_queue[i].len = 6;
-C51 COMPILER V9.54   UART_TASK                                                             05/02/2017 13:31:24 PAGE 3   
+C51 COMPILER V9.54   UART_TASK                                                             05/15/2017 10:35:31 PAGE 3   
 
  114   6                                              }
  115   5                                              
@@ -190,7 +190,7 @@ line level    source
  171   2                      for (i = 0; i < UART_QUEUE_NUM; i++) {
  172   3                              if ((uart2_send_queue[i].flag == 1) && (gl_ack_tick == 0)) {
  173   4                                      //重新赋值
-C51 COMPILER V9.54   UART_TASK                                                             05/02/2017 13:31:24 PAGE 4   
+C51 COMPILER V9.54   UART_TASK                                                             05/15/2017 10:35:31 PAGE 4   
 
  174   4                                      //watch_dog_tick = 0xFF;
  175   4                                      
@@ -254,7 +254,7 @@ line level    source
  233   3                      }
  234   2              }
  235   1              return i;
-C51 COMPILER V9.54   UART_TASK                                                             05/02/2017 13:31:24 PAGE 5   
+C51 COMPILER V9.54   UART_TASK                                                             05/15/2017 10:35:31 PAGE 5   
 
  236   1      }
 

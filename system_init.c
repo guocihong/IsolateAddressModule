@@ -86,7 +86,7 @@ static void get_config_info(void)
     if (temp == 0x5A) { //有有效设置
         gl_reply_tick = flash_read(EEPROM_SECTOR1 + 1);
     } else {	//无有效设置
-        gl_reply_tick = 30;
+        gl_reply_tick = 0;
     }
 	
 	//禁止Flash访问
